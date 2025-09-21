@@ -6,7 +6,12 @@ resource "aws_iam_user" "this" {
   force_destroy        = var.force_destroy
   permissions_boundary = var.permissions_boundary
 
-  tags = var.tags
+  tags = merge(
+    var.mandatory_taggs,
+    {CreatedThrough = "Terraform"},
+    {Deployment = "New2"},
+    {"Name" = var.name}
+  )
 }
 
 resource "aws_iam_user_login_profile" "this" {
@@ -51,4 +56,17 @@ resource "aws_iam_user_policy_attachment" "this" {
 
   user       = aws_iam_user.this[0].name
   policy_arn = each.value
+}
+
+resource "aws_secretsmanager_secret" "this {
+  count = var.create_user && var.create_iam_access_key && var.pgp_key == "" ? 1 : 0
+
+  name = join("-", [var.name, "access-keys"])
+}
+
+resource "aws_secretsmanager_secret_version" "this" {
+  count = var.create_user && var.create_iam_access_key && var.pgp_key == "" ? 1 : 0
+
+  secret_id = aws_secretmanager_secret.this[0].id
+  secret_string = jsonencode({"AccessKey" = aws_iam_access_key.this_no_pgp[0].id, "SecretAccessKey = aws_iam_access_key.this_no_pgp[0].secret"})
 }
