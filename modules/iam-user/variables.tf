@@ -1,3 +1,9 @@
+variable "aws_region" {
+  type        = string
+  description = "This AWS region where the resource will be created"
+  default     = "ap-south-1"
+}
+
 variable "create_user" {
   description = "Whether to create the IAM user"
   type        = bool
@@ -7,7 +13,7 @@ variable "create_user" {
 variable "create_iam_user_login_profile" {
   description = "Whether to create IAM user login profile"
   type        = bool
-  default     = true
+  default     = false # Changed to `false` as human user supposed to login via AWS Identity Center
 }
 
 variable "create_iam_access_key" {
@@ -87,8 +93,14 @@ variable "policy_arns" {
   default     = []
 }
 
-variable "tags" {
-  description = "A map of tags to add to all resources."
-  type        = map(string)
-  default     = {}
+variable "mandatory_tags" {
+  description = "A mapping of mandatory tags to assign to all resources."
+  type        = object({
+    CostCenter         = string
+    DataClassification = string
+    Application        = string
+    Environment        = string
+    Function           = string
+  })
+  nullable = false
 }
