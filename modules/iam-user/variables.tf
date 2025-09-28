@@ -1,22 +1,22 @@
 variable "aws_region" {
   type        = string
   description = "This AWS region where the resource will be created"
-  default     = "ap-south-1"
+  default     = ""
 }
 
-variable "create_user" {
-  description = "Whether to create the IAM user"
+variable "create" {
+  description = "If resources should be crated (affets all)"
   type        = bool
   default     = true
 }
 
-variable "create_iam_user_login_profile" {
+variable "create_login_profile" {
   description = "Whether to create IAM user login profile"
   type        = bool
   default     = false # Changed to `false` as human user supposed to login via AWS Identity Center
 }
 
-variable "create_iam_access_key" {
+variable "create_access_key" {
   description = "Whether to create IAM access key"
   type        = bool
   default     = true
@@ -25,12 +25,19 @@ variable "create_iam_access_key" {
 variable "name" {
   description = "Desired name for the IAM user"
   type        = string
+  deafult = ""
 }
 
 variable "path" {
   description = "Desired path for the IAM user"
   type        = string
-  default     = "/"
+  default     = null
+}
+
+variable "permissions_boundary" {
+  description = "When destroying this user, destroy even if it has non-Terraform-managed IAM access keys, login profile or MFA devices. Without force_destroy a user with non-Terraform-managed access keys and login profile will fail to be destroyed."
+  type        = string
+  default     = null
 }
 
 variable "force_destroy" {
@@ -39,15 +46,27 @@ variable "force_destroy" {
   default     = false
 }
 
+variable "policies" {
+  description = "policies to atatch to IAM USer `{'static_name' = 'policy_arn'}` format"
+  type        = map(string)
+  default     = {}
+}
+
 variable "pgp_key" {
   description = "Either a base-64 encoded PGP public key, or a keybase username in the form `keybase:username`. Used to encrypt password and access key."
   type        = string
-  default     = ""
+  default     = null
 }
 
-variable "iam_access_key_status" {
-  description = "Access key status to apply."
-  type        = string
+# variable "iam_access_key_status" {
+  # description = "Access key status to apply."
+  # type        = string
+  # default     = null
+# }
+
+variable "password_length" {
+  description = "The length of the generated password"
+  type        = number
   default     = null
 }
 
@@ -56,17 +75,16 @@ variable "password_reset_required" {
   type        = bool
   default     = true
 }
-
-variable "password_length" {
-  description = "The length of the generated password"
-  type        = number
-  default     = 20
+variable "access_key_status" {
+  description = "Whether to create IAM access key"
+  type        = string
+  default     = null
 }
 
-variable "upload_iam_user_ssh_key" {
-  description = "Whether to upload a public ssh key to the IAM user"
+variable "create_ssh_key" {
+  description = "Whether to upload a public ssh key to IAM user"
   type        = bool
-  default     = false
+  default     = "false"
 }
 
 variable "ssh_key_encoding" {
@@ -81,16 +99,50 @@ variable "ssh_public_key" {
   default     = ""
 }
 
-variable "permissions_boundary" {
-  description = "The ARN of the policy that is used to set the permissions boundary for the user."
-  type        = string
-  default     = ""
+#Inline policy
+
+variable "create_inline_policy"{
+  description = "whether to create inline policy"
+  type        = bool
+  default     = false
 }
 
-variable "policy_arns" {
-  description = "The list of ARNs of policies directly assigned to the IAM user"
+variable "source_inline_policy_documents"{
+  description = "List of IAM policy documents that are merged together into the expoted documets.statement must have unquie `sid`"
   type        = list(string)
   default     = []
+}
+
+variable "override_inline_policy_documents"{
+  description = "List of IAM policy documents that are merged together into the expoted documets.statement with non-blank `sid`will override statements with same `sid`"
+  type        = list(string)
+  default     = []
+}
+
+variable "inline_policy_permissions"{
+  description = "map of IAM policy"
+  type        = map(object({
+    sid = optional(string)
+    actions = optional(string)
+    not_actions = optional(list(string))
+    effect = optional(string, "Allow")
+    resources = optional(list(string))
+    not_resources = optional(list(string))
+    principals = optional(list(object({
+      type = string
+      indentifiers = list(string)
+    })))
+    not_principals = optional(list(object({
+      type = string
+      identifiers = list(string)
+    })))
+    condition = optional(list(object({
+      test = string
+      variable = string
+      values = list(string)
+    })))
+  }))
+  default     = null
 }
 
 variable "mandatory_tags" {
