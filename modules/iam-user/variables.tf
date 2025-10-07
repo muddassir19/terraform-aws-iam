@@ -156,3 +156,8 @@ variable "mandatory_tags" {
   })
   nullable = false
 }
+
+variable "prefix" {
+  description = "prefix for the secret Manager naming pattern"
+  type        = string
+}
