@@ -127,13 +127,13 @@ resource "aws_iam_user_policy_attachment" "this" {
 resource "aws_secretsmanager_secret" "this {
   count = var.create && var.create_access_key && var.pgp_key == null ? 1 : 0
 
-  name = join("-", [aws_iam_user.this[0].name, "access-keys"])
+  name = join("-", [var.var.prefix, "access-keys"])
 
   tags = merge(
     var.mandatory_tags,
     {CreatedThrough = "Terraform"},
     {Deployment = "New2"},
-    {"Name" = join("-", [aws_iam_user.this[0].name, "access-keys"])},
+    {"Name" = join("-", [var.var.prefix, "access-keys"])},
     {"Notes" = "Crated by aws-iam for ${aws_iam_user.this[0].name} iam-user"}
   )
 }
